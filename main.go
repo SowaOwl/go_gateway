@@ -4,12 +4,9 @@ import (
 	"gateway/app/gateway"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"net/http"
+	"runtime"
 )
-
-type GetStruct struct {
-	Service string `uri:"service" binding:"required"`
-	Route   string `uri:"route"`
-}
 
 func main() {
 	godotenv.Load(".env")
@@ -19,20 +16,21 @@ func main() {
 	controller := gateway.NewController(service)
 
 	r := gin.Default()
+	r.LoadHTMLGlob("public/views/*")
+	api := r.Group("/api")
 
 	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello World",
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"GoVersion":  runtime.Version(),
+			"GinVersion": gin.Version,
 		})
 	})
 
-	r.GET("/:service/*route", func(c *gin.Context) {
-		controller.Get(c)
-	})
-
-	r.POST("/:service/*route", func(c *gin.Context) {
-
-	})
+	api.Use()
+	{
+		api.GET("/:service/*route", func(c *gin.Context) { controller.Get(c) })
+		api.POST("/:service/*route", func(c *gin.Context) {})
+	}
 
 	err := r.Run(":9000")
 	if err != nil {

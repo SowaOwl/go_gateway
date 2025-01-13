@@ -3,7 +3,6 @@ package gateway
 import (
 	"gateway/app/gateway/DTOs"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 type Controller interface {
@@ -43,10 +42,10 @@ func (c *ControllerImpl) Get(context *gin.Context) {
 		Bearer:  token,
 	}
 
-	response, contentType, err := c.service.Get(dto)
+	response, err := c.service.Get(dto)
 	if err != nil {
 		context.JSON(400, gin.H{"msg": err.Error()})
 	}
 
-	context.Data(http.StatusOK, contentType, response)
+	context.Data(response.Status, response.ContentType, response.Body)
 }

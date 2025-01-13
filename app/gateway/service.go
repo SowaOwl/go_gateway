@@ -9,7 +9,7 @@ import (
 )
 
 type Service interface {
-	Get(dto DTOs.GetDTO) ([]byte, string, error)
+	Get(dto DTOs.GetDTO) (DTOs.ResponseDTO, error)
 }
 
 type ServiceImpl struct {
@@ -22,10 +22,10 @@ func NewService(repository HTTPRepository) *ServiceImpl {
 	}
 }
 
-func (s *ServiceImpl) Get(dto DTOs.GetDTO) ([]byte, string, error) {
+func (s *ServiceImpl) Get(dto DTOs.GetDTO) (DTOs.ResponseDTO, error) {
 	serviceUrl, err := getServiceUrl(dto.Service)
 	if err != nil {
-		return nil, "", err
+		return DTOs.ResponseDTO{}, err
 	}
 
 	requestUrl := fmt.Sprintf("%s/api%s", serviceUrl, dto.Route)
@@ -34,8 +34,17 @@ func (s *ServiceImpl) Get(dto DTOs.GetDTO) ([]byte, string, error) {
 	}
 
 	response, body, err := s.httpClient.Get(requestUrl, dto.Bearer)
+	if err != nil {
+		return DTOs.ResponseDTO{}, err
+	}
 
-	return body, response.Header.Get("Content-Type"), err
+	responseDTO := DTOs.ResponseDTO{
+		Body:        body,
+		ContentType: response.Header.Get("Content-Type"),
+		Status:      response.StatusCode,
+	}
+
+	return responseDTO, err
 }
 
 func getServiceUrl(serviceName string) (string, error) {

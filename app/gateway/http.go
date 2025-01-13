@@ -1,8 +1,6 @@
 package gateway
 
 import (
-	"encoding/json"
-	"gateway/util/debug"
 	"io"
 	"net/http"
 )
@@ -47,16 +45,6 @@ func (h *HTTPRepositoryImpl) Get(url string, bearerToken string) (*http.Response
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-
-	var result interface{}
-	if err := json.Unmarshal(body, &result); err != nil {
-		return nil, nil, err
-	}
-
-	err = debug.LogJson(result)
-	if err != nil {
-		return nil, nil, err
-	}
 
 	return resp, body, nil
 }
