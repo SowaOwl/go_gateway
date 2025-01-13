@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GO ASYNC</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: rgb(7, 18, 29);
+            color: #F2E8CF;
+            text-align: center;
+        }
+
+        #api-text {
+            font-weight: bold;
+            text-transform: uppercase; 
+            letter-spacing: 0.1em;
+        }
+
+        #service-name {
+            font-size: 2em;
+            margin-top: 20px;
+            opacity: 0.7;
+        }
+
+        #go-version {
+            font-size: 1.5em;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        #gin-version {
+            font-size: 1.4em;
+            margin-top: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div id="api-text">API</div>
+    <div id="service-name">GO GATEWAY</div>
+    <div id="go-version">Go version: {{.GoVersion}}</div>
+    <div id="gin-version">Gin version: {{.GinVersion}}</div>
+</body>
+</html>
