@@ -2,6 +2,7 @@ package main
 
 import (
 	"gateway/app/gateway"
+	"gateway/middlewares"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"net/http"
@@ -26,7 +27,7 @@ func main() {
 		})
 	})
 
-	api.Use()
+	api.Use(middlewares.BearerTokenMiddleware())
 	{
 		api.GET("/:service/*route", func(c *gin.Context) { controller.Get(c) })
 		api.POST("/:service/*route", func(c *gin.Context) {})
