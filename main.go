@@ -20,6 +20,7 @@ func main() {
 	r.LoadHTMLGlob("public/views/*")
 	api := r.Group("/api")
 
+	//TODO убрать в свой контроллер
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{
 			"GoVersion":  runtime.Version(),
@@ -30,7 +31,7 @@ func main() {
 	api.Use(middlewares.BearerTokenMiddleware())
 	{
 		api.GET("/:service/*route", func(c *gin.Context) { controller.Get(c) })
-		api.POST("/:service/*route", func(c *gin.Context) {})
+		api.POST("/:service/*route", func(c *gin.Context) { controller.Post(c) })
 	}
 
 	err := r.Run(":9000")
