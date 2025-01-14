@@ -8,6 +8,7 @@ import (
 type Controller interface {
 	Get(context *gin.Context)
 	Post(context *gin.Context)
+	Delete(context *gin.Context)
 }
 
 type ControllerImpl struct {
@@ -67,6 +68,31 @@ func (c *ControllerImpl) Post(context *gin.Context) {
 	}
 
 	response, err := c.service.Post(dto)
+	if err != nil {
+		context.JSON(400, gin.H{"msg": err.Error()})
+	}
+
+	context.Data(response.Status, response.ContentType, response.Body)
+	return
+}
+
+func (c *ControllerImpl) Delete(context *gin.Context) {
+	var urlParams UrlParam
+	if err := context.ShouldBindUri(&urlParams); err != nil {
+		context.JSON(400, gin.H{"msg": err.Error()})
+	}
+
+	token := context.GetHeader("Authorization")
+
+	dto := DTOs.DeleteDTO{
+		Service:   urlParams.Service,
+		Route:     urlParams.Route,
+		UrlParams: context.Request.URL.RawQuery,
+		Bearer:    token,
+		Context:   context,
+	}
+
+	response, err := c.service.Delete(dto)
 	if err != nil {
 		context.JSON(400, gin.H{"msg": err.Error()})
 	}

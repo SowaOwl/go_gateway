@@ -15,6 +15,7 @@ import (
 type Service interface {
 	Get(dto DTOs.GetDTO) (DTOs.ResponseDTO, error)
 	Post(dto DTOs.PostDTO) (DTOs.ResponseDTO, error)
+	Delete(dto DTOs.DeleteDTO) (DTOs.ResponseDTO, error)
 }
 
 type ServiceImpl struct {
@@ -81,6 +82,36 @@ func (s *ServiceImpl) Post(dto DTOs.PostDTO) (DTOs.ResponseDTO, error) {
 	}
 
 	response, body, err := s.httpClient.Post(requestUrl, dto.Bearer, dto.ContentType, reqBody)
+	if err != nil {
+		return DTOs.ResponseDTO{}, err
+	}
+
+	responseDTO := DTOs.ResponseDTO{
+		Body:        body,
+		ContentType: response.Header.Get("Content-Type"),
+		Status:      response.StatusCode,
+	}
+
+	return responseDTO, err
+}
+
+func (s *ServiceImpl) Delete(dto DTOs.DeleteDTO) (DTOs.ResponseDTO, error) {
+	serviceUrl, err := getServiceUrl(dto.Service)
+	if err != nil {
+		return DTOs.ResponseDTO{}, err
+	}
+
+	requestUrl := fmt.Sprintf("%s/api%s", serviceUrl, dto.Route)
+	if dto.UrlParams != "" {
+		requestUrl = fmt.Sprintf("%s?%s", requestUrl, dto.UrlParams)
+	}
+
+	reqBody, err := processJson(dto.Context)
+	if err != nil {
+		return DTOs.ResponseDTO{}, err
+	}
+
+	response, body, err := s.httpClient.Delete(requestUrl, dto.Bearer, reqBody)
 	if err != nil {
 		return DTOs.ResponseDTO{}, err
 	}
