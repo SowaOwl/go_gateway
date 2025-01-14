@@ -7,8 +7,8 @@ import (
 
 type HTTPRepository interface {
 	Get(url string, bearerToken string) (*http.Response, []byte, error)
-	Post(url string, bearerToken string, contentType string, body io.Reader) (*http.Response, []byte, error)
-	Delete(url string, bearerToken string, body io.Reader) (*http.Response, []byte, error)
+	Post(url string, bearerToken string, contentType string, reqData io.Reader) (*http.Response, []byte, error)
+	WithBody(url string, bearerToken string, reqType string, reqData io.Reader) (*http.Response, []byte, error)
 }
 
 type HTTPRepositoryImpl struct {
@@ -67,12 +67,12 @@ func (h *HTTPRepositoryImpl) Post(url string, bearerToken string, contentType st
 	return resp, body, nil
 }
 
-func (h *HTTPRepositoryImpl) Delete(url string, bearerToken string, reqData io.Reader) (*http.Response, []byte, error) {
+func (h *HTTPRepositoryImpl) WithBody(url string, bearerToken string, reqType string, reqData io.Reader) (*http.Response, []byte, error) {
 	h.client.Transport = &TransportWithToken{
 		Token: bearerToken,
 	}
 
-	req, err := http.NewRequest(http.MethodDelete, url, reqData)
+	req, err := http.NewRequest(reqType, url, reqData)
 	if err != nil {
 		return nil, nil, err
 	}

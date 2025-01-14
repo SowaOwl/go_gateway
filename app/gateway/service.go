@@ -15,7 +15,7 @@ import (
 type Service interface {
 	Get(dto DTOs.GetDTO) (DTOs.ResponseDTO, error)
 	Post(dto DTOs.PostDTO) (DTOs.ResponseDTO, error)
-	Delete(dto DTOs.DeleteDTO) (DTOs.ResponseDTO, error)
+	WithBody(dto DTOs.WithBodyDTO) (DTOs.ResponseDTO, error)
 }
 
 type ServiceImpl struct {
@@ -95,7 +95,7 @@ func (s *ServiceImpl) Post(dto DTOs.PostDTO) (DTOs.ResponseDTO, error) {
 	return responseDTO, err
 }
 
-func (s *ServiceImpl) Delete(dto DTOs.DeleteDTO) (DTOs.ResponseDTO, error) {
+func (s *ServiceImpl) WithBody(dto DTOs.WithBodyDTO) (DTOs.ResponseDTO, error) {
 	serviceUrl, err := getServiceUrl(dto.Service)
 	if err != nil {
 		return DTOs.ResponseDTO{}, err
@@ -111,7 +111,7 @@ func (s *ServiceImpl) Delete(dto DTOs.DeleteDTO) (DTOs.ResponseDTO, error) {
 		return DTOs.ResponseDTO{}, err
 	}
 
-	response, body, err := s.httpClient.Delete(requestUrl, dto.Bearer, reqBody)
+	response, body, err := s.httpClient.WithBody(requestUrl, dto.Bearer, dto.Type, reqBody)
 	if err != nil {
 		return DTOs.ResponseDTO{}, err
 	}

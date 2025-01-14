@@ -32,7 +32,9 @@ func main() {
 	{
 		api.GET("/:service/*route", func(c *gin.Context) { controller.Get(c) })
 		api.POST("/:service/*route", func(c *gin.Context) { controller.Post(c) })
-		api.DELETE("/:service/*route", func(c *gin.Context) { controller.Delete(c) })
+		api.PUT("/:service/*route", func(c *gin.Context) { controller.WithBody(c) })
+		api.PATCH("/:service/*route", func(c *gin.Context) { controller.WithBody(c) })
+		api.DELETE("/:service/*route", func(c *gin.Context) { controller.WithBody(c) })
 	}
 
 	err := r.Run(":9000")
