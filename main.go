@@ -2,39 +2,34 @@ package main
 
 import (
 	"gateway/app/gateway"
+	"gateway/app/mainPage"
 	"gateway/middlewares"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"net/http"
-	"runtime"
 )
 
 func main() {
 	godotenv.Load(".env")
 
-	repository := gateway.NewHTTPRepository()
-	service := gateway.NewService(repository)
-	controller := gateway.NewController(service)
+	gatewayRepository := gateway.NewHTTPRepository()
+	gatewayService := gateway.NewService(gatewayRepository)
+	gatewayController := gateway.NewController(gatewayService)
 
 	r := gin.Default()
 	r.LoadHTMLGlob("public/views/*")
 	api := r.Group("/api")
 
-	//TODO убрать в свой контроллер
-	r.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"GoVersion":  runtime.Version(),
-			"GinVersion": gin.Version,
-		})
-	})
+	//Main Page
+	r.GET("/", func(c *gin.Context) { mainPage.RenderMainPage(c) })
 
+	//API routes
 	api.Use(middlewares.BearerTokenMiddleware())
 	{
-		api.GET("/:service/*route", func(c *gin.Context) { controller.Get(c) })
-		api.POST("/:service/*route", func(c *gin.Context) { controller.Post(c) })
-		api.PUT("/:service/*route", func(c *gin.Context) { controller.WithBody(c) })
-		api.PATCH("/:service/*route", func(c *gin.Context) { controller.WithBody(c) })
-		api.DELETE("/:service/*route", func(c *gin.Context) { controller.WithBody(c) })
+		api.GET("/:service/*route", func(c *gin.Context) { gatewayController.Get(c) })
+		api.POST("/:service/*route", func(c *gin.Context) { gatewayController.Post(c) })
+		api.PUT("/:service/*route", func(c *gin.Context) { gatewayController.WithBody(c) })
+		api.PATCH("/:service/*route", func(c *gin.Context) { gatewayController.WithBody(c) })
+		api.DELETE("/:service/*route", func(c *gin.Context) { gatewayController.WithBody(c) })
 	}
 
 	err := r.Run(":9000")
