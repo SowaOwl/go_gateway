@@ -3,6 +3,7 @@ package main
 import (
 	"gateway/app/gateway"
 	"gateway/app/mainPage"
+	"gateway/cmd"
 	"gateway/middlewares"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -10,6 +11,7 @@ import (
 
 func main() {
 	godotenv.Load(".env")
+	db, _ := cmd.InitDB()
 
 	gatewayRepository := gateway.NewHTTPRepository()
 	gatewayService := gateway.NewService(gatewayRepository)
@@ -23,7 +25,7 @@ func main() {
 	r.GET("/", func(c *gin.Context) { mainPage.RenderMainPage(c) })
 
 	//API routes
-	api.Use(middlewares.BearerTokenMiddleware())
+	api.Use(middlewares.BearerTokenMiddleware(), middlewares.LogRequestMiddleware(db))
 	{
 		api.GET("/:service/*route", func(c *gin.Context) { gatewayController.Get(c) })
 		api.POST("/:service/*route", func(c *gin.Context) { gatewayController.Post(c) })
