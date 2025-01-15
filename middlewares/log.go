@@ -42,24 +42,28 @@ func LogRequestMiddleware(db *gorm.DB) gin.HandlerFunc {
 		c.Writer = rw
 		c.Next()
 
-		reqHeader, err := json.Marshal(c.Request.Header)
-		if err != nil {
-			util.SendError(c, http.StatusInternalServerError, err.Error(), "")
-		}
-
-		log := models.ApiLog{
-			UserID:        0,
-			RequestMethod: c.Request.Method,
-			Url:           getScheme(c) + "://" + c.Request.Host + c.Request.URL.String(),
-			RequestBody:   string(reqBody),
-			RequestHeader: string(reqHeader),
-			Ip:            c.Request.RemoteAddr,
-			ResponseCode:  uint(c.Writer.Status()),
-			ResponseBody:  rw.body.String(),
-		}
-
-		db.Create(&log)
+		go writeToDB(db, c, reqBody, rw)
 	}
+}
+
+func writeToDB(db *gorm.DB, c *gin.Context, reqBody []byte, rw *responseWriter) {
+	reqHeader, err := json.Marshal(c.Request.Header)
+	if err != nil {
+		util.SendError(c, http.StatusInternalServerError, err.Error(), "")
+	}
+
+	log := models.ApiLog{
+		UserID:        0,
+		RequestMethod: c.Request.Method,
+		Url:           getScheme(c) + "://" + c.Request.Host + c.Request.URL.String(),
+		RequestBody:   string(reqBody),
+		RequestHeader: string(reqHeader),
+		Ip:            c.Request.RemoteAddr,
+		ResponseCode:  uint(c.Writer.Status()),
+		ResponseBody:  rw.body.String(),
+	}
+
+	db.Create(&log)
 }
 
 func getScheme(c *gin.Context) string {
