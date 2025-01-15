@@ -2,7 +2,9 @@ package gateway
 
 import (
 	"gateway/app/gateway/DTOs"
+	"gateway/util"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type Controller interface {
@@ -29,7 +31,8 @@ type UrlParam struct {
 func (c *ControllerImpl) Get(context *gin.Context) {
 	var urlParams UrlParam
 	if err := context.ShouldBindUri(&urlParams); err != nil {
-		context.JSON(400, gin.H{"msg": err.Error()})
+		util.SendError(context, http.StatusInternalServerError, err.Error(), "")
+		return
 	}
 
 	token := context.GetHeader("Authorization")
@@ -43,7 +46,8 @@ func (c *ControllerImpl) Get(context *gin.Context) {
 
 	response, err := c.service.Get(dto)
 	if err != nil {
-		context.JSON(400, gin.H{"msg": err.Error()})
+		util.SendError(context, http.StatusInternalServerError, err.Error(), "")
+		return
 	}
 
 	context.Data(response.Status, response.ContentType, response.Body)
@@ -53,7 +57,8 @@ func (c *ControllerImpl) Get(context *gin.Context) {
 func (c *ControllerImpl) Post(context *gin.Context) {
 	var urlParams UrlParam
 	if err := context.ShouldBindUri(&urlParams); err != nil {
-		context.JSON(400, gin.H{"msg": err.Error()})
+		util.SendError(context, http.StatusInternalServerError, err.Error(), "")
+		return
 	}
 
 	token := context.GetHeader("Authorization")
@@ -69,7 +74,8 @@ func (c *ControllerImpl) Post(context *gin.Context) {
 
 	response, err := c.service.Post(dto)
 	if err != nil {
-		context.JSON(400, gin.H{"msg": err.Error()})
+		util.SendError(context, http.StatusInternalServerError, err.Error(), "")
+		return
 	}
 
 	context.Data(response.Status, response.ContentType, response.Body)
@@ -79,7 +85,8 @@ func (c *ControllerImpl) Post(context *gin.Context) {
 func (c *ControllerImpl) WithBody(context *gin.Context) {
 	var urlParams UrlParam
 	if err := context.ShouldBindUri(&urlParams); err != nil {
-		context.JSON(400, gin.H{"msg": err.Error()})
+		util.SendError(context, http.StatusInternalServerError, err.Error(), "")
+		return
 	}
 
 	token := context.GetHeader("Authorization")
@@ -95,7 +102,8 @@ func (c *ControllerImpl) WithBody(context *gin.Context) {
 
 	response, err := c.service.WithBody(dto)
 	if err != nil {
-		context.JSON(400, gin.H{"msg": err.Error()})
+		util.SendError(context, http.StatusInternalServerError, err.Error(), "")
+		return
 	}
 
 	context.Data(response.Status, response.ContentType, response.Body)

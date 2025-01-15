@@ -1,8 +1,20 @@
 package util
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
-func SendError(c *gin.Context, statusCode int, errorMsg string) {
-	c.JSON(statusCode, gin.H{"error": errorMsg})
+type APIResponse struct {
+	Status bool        `json:"status"`
+	Error  string      `json:"error"`
+	Data   interface{} `json:"data"`
+}
+
+func SendError(c *gin.Context, statusCode int, errorMsg string, data interface{}) {
+	c.JSON(statusCode, APIResponse{
+		Status: false,
+		Error:  errorMsg,
+		Data:   data,
+	})
 	c.Abort()
 }
