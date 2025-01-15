@@ -35,13 +35,11 @@ func (c *ControllerImpl) Get(context *gin.Context) {
 		return
 	}
 
-	token := context.GetHeader("Authorization")
-
 	dto := DTOs.GetDTO{
 		Service: urlParams.Service,
 		Route:   urlParams.Route,
 		Params:  context.Request.URL.RawQuery,
-		Bearer:  token,
+		Bearer:  context.GetHeader("Authorization"),
 	}
 
 	response, err := c.service.Get(dto)
@@ -61,13 +59,11 @@ func (c *ControllerImpl) Post(context *gin.Context) {
 		return
 	}
 
-	token := context.GetHeader("Authorization")
-
 	dto := DTOs.PostDTO{
 		Service:     urlParams.Service,
 		Route:       urlParams.Route,
 		UrlParams:   context.Request.URL.RawQuery,
-		Bearer:      token,
+		Bearer:      context.GetHeader("Authorization"),
 		ContentType: context.ContentType(),
 		Context:     context,
 	}
@@ -89,13 +85,11 @@ func (c *ControllerImpl) WithBody(context *gin.Context) {
 		return
 	}
 
-	token := context.GetHeader("Authorization")
-
 	dto := DTOs.WithBodyDTO{
 		Service:   urlParams.Service,
 		Route:     urlParams.Route,
 		UrlParams: context.Request.URL.RawQuery,
-		Bearer:    token,
+		Bearer:    context.GetHeader("Authorization"),
 		Context:   context,
 		Type:      context.Request.Method,
 	}
