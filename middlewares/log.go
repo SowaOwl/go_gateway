@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"gateway/app/database/models"
 	"gateway/util"
-	"gateway/util/debug"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"io"
@@ -42,11 +41,6 @@ func LogRequestMiddleware(db *gorm.DB) gin.HandlerFunc {
 		}
 		c.Writer = rw
 		c.Next()
-
-		err := debug.LogJson(string(reqBody))
-		if err != nil {
-			util.SendError(c, http.StatusInternalServerError, err.Error(), "")
-		}
 
 		reqHeader, err := json.Marshal(c.Request.Header)
 		if err != nil {
