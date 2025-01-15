@@ -164,14 +164,27 @@ func processFormData(context *gin.Context) (*bytes.Buffer, string, error) {
 				return &bytes.Buffer{}, "", err
 			}
 
-			file, err := fileHeader.Open()
-			if err != nil {
-				return &bytes.Buffer{}, "", err
-			}
-			defer file.Close()
+			if err = func() error {
+				file, err := fileHeader.Open()
+				if err != nil {
+					return err
+				}
 
-			_, err = io.Copy(part, file)
-			if err != nil {
+				var returnErr error
+				defer func(file multipart.File) {
+					err := file.Close()
+					if err != nil {
+						returnErr = err
+					}
+				}(file)
+
+				_, err = io.Copy(part, file)
+				if err != nil {
+					return err
+				}
+
+				return returnErr
+			}(); err != nil {
 				return &bytes.Buffer{}, "", err
 			}
 		}

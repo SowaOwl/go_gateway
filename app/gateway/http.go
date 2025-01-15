@@ -44,11 +44,18 @@ func (h *HTTPRepositoryImpl) Get(url string, bearerToken string) (*http.Response
 	if err != nil {
 		return nil, nil, err
 	}
-	defer resp.Body.Close()
+
+	var returnErr error
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			returnErr = err
+		}
+	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
 
-	return resp, body, nil
+	return resp, body, returnErr
 }
 
 func (h *HTTPRepositoryImpl) Post(url string, bearerToken string, contentType string, reqData io.Reader) (*http.Response, []byte, error) {
@@ -60,11 +67,18 @@ func (h *HTTPRepositoryImpl) Post(url string, bearerToken string, contentType st
 	if err != nil {
 		return nil, nil, err
 	}
-	defer resp.Body.Close()
+
+	var returnErr error
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			returnErr = err
+		}
+	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
 
-	return resp, body, nil
+	return resp, body, returnErr
 }
 
 func (h *HTTPRepositoryImpl) WithBody(url string, bearerToken string, reqType string, reqData io.Reader) (*http.Response, []byte, error) {
@@ -82,9 +96,15 @@ func (h *HTTPRepositoryImpl) WithBody(url string, bearerToken string, reqType st
 		return nil, nil, err
 	}
 
-	defer resp.Body.Close()
+	var returnErr error
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			returnErr = err
+		}
+	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
 
-	return resp, body, nil
+	return resp, body, returnErr
 }
