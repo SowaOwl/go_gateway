@@ -12,9 +12,23 @@ import (
 	"strings"
 )
 
-func BearerTokenMiddleware(db *gorm.DB) gin.HandlerFunc {
+type AuthMiddleware struct {
+	db           *gorm.DB
+	jwtService   jwt.Service
+	redisService redis.Service
+}
+
+func NewAuthMiddleware(db *gorm.DB, jwtService jwt.Service, redisService redis.Service) *AuthMiddleware {
+	return &AuthMiddleware{
+		db:           db,
+		jwtService:   jwtService,
+		redisService: redisService,
+	}
+}
+
+func (a *AuthMiddleware) BearerTokenMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		skipAuth, err := ifRouteAcceptToSkip(db, c.Request.URL.Path)
+		skipAuth, err := a.ifRouteAcceptToSkip(c.Request.URL.Path)
 		if err != nil {
 			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
 			return
@@ -39,25 +53,13 @@ func BearerTokenMiddleware(db *gorm.DB) gin.HandlerFunc {
 
 		tokenString := parts[1]
 
-		jwtService, err := jwt.NewJwt()
+		id, err := a.jwtService.GetIdFromToken(tokenString)
 		if err != nil {
 			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
 			return
 		}
 
-		id, err := jwtService.GetIdFromToken(tokenString)
-		if err != nil {
-			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
-			return
-		}
-
-		redisService, err := redis.NewRedisService()
-		if err != nil {
-			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
-			return
-		}
-
-		redisData, err := redisService.GetClient(id)
+		redisData, err := a.redisService.GetClient(id)
 		if err != nil {
 			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
 			return
@@ -72,10 +74,10 @@ func BearerTokenMiddleware(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
-func ifRouteAcceptToSkip(db *gorm.DB, route string) (bool, error) {
+func (a *AuthMiddleware) ifRouteAcceptToSkip(route string) (bool, error) {
 	var endpoint model.WithoutAuthEndpoint
 
-	if err := db.Where("value = ?", route).First(&endpoint).Error; err != nil {
+	if err := a.db.Where("value = ?", route).First(&endpoint).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
 		} else {

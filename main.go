@@ -12,12 +12,18 @@ import (
 
 func main() {
 	godotenv.Load(".env")
+
 	db, _ := cmd.InitDB()
+	redis, _ := cmd.InitRedis()
+	jwt, _ := cmd.InitJwt()
+
 	seeder.Seed(db)
 
 	gatewayRepository := gateway.NewHTTPRepository()
 	gatewayService := gateway.NewService(gatewayRepository)
 	gatewayController := gateway.NewController(gatewayService)
+
+	authMiddleware := middlewares.NewAuthMiddleware(db, jwt, redis)
 
 	r := gin.Default()
 	r.LoadHTMLGlob("public/views/*")
@@ -27,7 +33,7 @@ func main() {
 	r.GET("/", func(c *gin.Context) { mainPage.RenderMainPage(c) })
 
 	//API routes
-	api.Use(middlewares.BearerTokenMiddleware(db), middlewares.LogRequestMiddleware(db))
+	api.Use(authMiddleware.BearerTokenMiddleware(), middlewares.LogRequestMiddleware(db))
 	{
 		api.GET("/:service/*route", func(c *gin.Context) { gatewayController.Get(c) })
 		api.POST("/:service/*route", func(c *gin.Context) { gatewayController.Post(c) })

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"gateway/app/redis"
 	"gateway/database/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -26,4 +27,8 @@ func InitDB() (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func InitRedis() (redis.Service, error) {
+	return redis.NewRedisService()
 }
