@@ -7,12 +7,12 @@ import (
 
 func WithoutAuthEndpointSeed(db *gorm.DB) error {
 	endpoints := []string{
-		"api/auth/refresh",
-		"api/auth/login",
-		"api/auth/temp-users/register",
-		"api/auth/reset-password-check",
-		"api/auth/user/reset-password",
-		"api/numerator/number-generation",
+		"/api/auth/refresh",
+		"/api/auth/login",
+		"/api/auth/temp-users/register",
+		"/api/auth/reset-password-check",
+		"/api/auth/user/reset-password",
+		"/api/numerator/number-generation",
 	}
 
 	for _, endpoint := range endpoints {

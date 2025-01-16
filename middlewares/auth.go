@@ -1,16 +1,30 @@
 package middlewares
 
 import (
+	"errors"
 	"gateway/app/jwt"
 	"gateway/app/redis"
+	"gateway/database/model"
 	"gateway/util"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 	"strings"
 )
 
-func BearerTokenMiddleware() gin.HandlerFunc {
+func BearerTokenMiddleware(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		skipAuth, err := ifRouteAcceptToSkip(db, c.Request.URL.Path)
+		if err != nil {
+			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
+			return
+		}
+
+		if skipAuth {
+			c.Next()
+			return
+		}
+
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
 			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
@@ -55,5 +69,19 @@ func BearerTokenMiddleware() gin.HandlerFunc {
 		}
 
 		c.Next()
+	}
+}
+
+func ifRouteAcceptToSkip(db *gorm.DB, route string) (bool, error) {
+	var endpoint model.WithoutAuthEndpoint
+
+	if err := db.Where("value = ?", route).First(&endpoint).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	} else {
+		return true, nil
 	}
 }

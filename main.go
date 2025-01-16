@@ -27,7 +27,7 @@ func main() {
 	r.GET("/", func(c *gin.Context) { mainPage.RenderMainPage(c) })
 
 	//API routes
-	api.Use(middlewares.BearerTokenMiddleware(), middlewares.LogRequestMiddleware(db))
+	api.Use(middlewares.BearerTokenMiddleware(db), middlewares.LogRequestMiddleware(db))
 	{
 		api.GET("/:service/*route", func(c *gin.Context) { gatewayController.Get(c) })
 		api.POST("/:service/*route", func(c *gin.Context) { gatewayController.Post(c) })
