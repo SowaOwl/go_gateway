@@ -21,6 +21,7 @@ func InitDB() (*gorm.DB, error) {
 	err = db.AutoMigrate(
 		&model.ApiLog{},
 		&model.WithoutAuthEndpoint{},
+		&model.SystemLog{},
 	)
 	if err != nil {
 		return nil, err
