@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"errors"
+	"fmt"
 	"gateway/app/jwt"
 	"gateway/app/redis"
 	"gateway/database/model"
@@ -30,7 +31,7 @@ func (a *AuthMiddleware) BearerTokenMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		skipAuth, err := a.ifRouteAcceptToSkip(c.Request.URL.Path)
 		if err != nil {
-			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
+			a.processError(err, c)
 			return
 		}
 
@@ -41,13 +42,13 @@ func (a *AuthMiddleware) BearerTokenMiddleware() gin.HandlerFunc {
 
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
-			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
+			a.processError(fmt.Errorf("authorization field is empty"), c)
 			return
 		}
 
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
+			a.processError(fmt.Errorf("no token found in request"), c)
 			return
 		}
 
@@ -55,23 +56,29 @@ func (a *AuthMiddleware) BearerTokenMiddleware() gin.HandlerFunc {
 
 		id, err := a.jwtService.GetIdFromToken(tokenString)
 		if err != nil {
-			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
+			a.processError(err, c)
 			return
 		}
 
 		redisData, err := a.redisService.GetClient(id)
 		if err != nil {
-			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
+			a.processError(err, c)
 			return
 		}
 
 		if redisData == "" {
-			util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
+			a.processError(fmt.Errorf("user data in redis is empty"), c)
 			return
 		}
 
 		c.Next()
 	}
+}
+
+func (a *AuthMiddleware) processError(err error, c *gin.Context) {
+	util.SaveErrToDB(err, a.db)
+	util.SendError(c, http.StatusUnauthorized, "Unauthorized", "")
+	return
 }
 
 func (a *AuthMiddleware) ifRouteAcceptToSkip(route string) (bool, error) {

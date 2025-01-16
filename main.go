@@ -6,6 +6,7 @@ import (
 	"gateway/cmd"
 	"gateway/database/seeder"
 	"gateway/middlewares"
+	"gateway/util"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -14,10 +15,18 @@ func main() {
 	godotenv.Load(".env")
 
 	db, _ := cmd.InitDB()
-	redis, _ := cmd.InitRedis()
-	jwt, _ := cmd.InitJwt()
-
-	seeder.Seed(db)
+	redis, err := cmd.InitRedis()
+	if err != nil {
+		util.SaveErrToDB(err, db)
+	}
+	jwt, err := cmd.InitJwt()
+	if err != nil {
+		util.SaveErrToDB(err, db)
+	}
+	err = seeder.Seed(db)
+	if err != nil {
+		util.SaveErrToDB(err, db)
+	}
 
 	gatewayRepository := gateway.NewHTTPRepository()
 	gatewayService := gateway.NewService(gatewayRepository)
@@ -42,8 +51,8 @@ func main() {
 		api.DELETE("/:service/*route", func(c *gin.Context) { gatewayController.WithBody(c) })
 	}
 
-	err := r.Run(":9000")
+	err = r.Run(":9000")
 	if err != nil {
-		return
+		util.SaveErrToDB(err, db)
 	}
 }
