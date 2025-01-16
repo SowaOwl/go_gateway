@@ -1,11 +1,11 @@
-package models
+package model
 
 import (
 	"gorm.io/gorm"
 	"time"
 )
 
-type WhiteListedEndpoint struct {
+type WithoutAuthEndpoint struct {
 	ID        uint   `gorm:"primaryKey" json:"id"`
 	Value     string `gorm:"not null"`
 	CreatedAt time.Time

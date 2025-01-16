@@ -3,7 +3,7 @@ package middlewares
 import (
 	"bytes"
 	"encoding/json"
-	"gateway/app/database/models"
+	"gateway/database/model"
 	"gateway/util"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -52,7 +52,7 @@ func writeToDB(db *gorm.DB, c *gin.Context, reqBody []byte, rw *responseWriter) 
 		util.SendError(c, http.StatusInternalServerError, err.Error(), "")
 	}
 
-	log := models.ApiLog{
+	log := model.ApiLog{
 		UserID:        0,
 		RequestMethod: c.Request.Method,
 		Url:           getScheme(c) + "://" + c.Request.Host + c.Request.URL.String(),

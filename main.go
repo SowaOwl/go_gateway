@@ -4,6 +4,7 @@ import (
 	"gateway/app/gateway"
 	"gateway/app/mainPage"
 	"gateway/cmd"
+	"gateway/database/seeder"
 	"gateway/middlewares"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -12,6 +13,7 @@ import (
 func main() {
 	godotenv.Load(".env")
 	db, _ := cmd.InitDB()
+	seeder.Seed(db)
 
 	gatewayRepository := gateway.NewHTTPRepository()
 	gatewayService := gateway.NewService(gatewayRepository)

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"gateway/app/database/models"
+	"gateway/database/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"os"
@@ -18,8 +18,8 @@ func InitDB() (*gorm.DB, error) {
 	}
 
 	err = db.AutoMigrate(
-		&models.ApiLog{},
-		&models.WhiteListedEndpoint{},
+		&model.ApiLog{},
+		&model.WithoutAuthEndpoint{},
 	)
 	if err != nil {
 		return nil, err
