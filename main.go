@@ -12,7 +12,10 @@ import (
 )
 
 func main() {
-	godotenv.Load(".env")
+	err := godotenv.Load(".env")
+	if err != nil {
+		util.SaveErrToFile(err)
+	}
 
 	db, _ := cmd.InitDB()
 	redis, err := cmd.InitRedis()
