@@ -11,6 +11,16 @@ import (
 	"net/http"
 )
 
+type LogMiddleware struct {
+	db *gorm.DB
+}
+
+func NewLogMiddleware(db *gorm.DB) *LogMiddleware {
+	return &LogMiddleware{
+		db: db,
+	}
+}
+
 type responseWriter struct {
 	gin.ResponseWriter
 	body *bytes.Buffer
@@ -21,7 +31,7 @@ func (rw *responseWriter) Write(data []byte) (int, error) {
 	return rw.ResponseWriter.Write(data)
 }
 
-func LogRequestMiddleware(db *gorm.DB) gin.HandlerFunc {
+func (l *LogMiddleware) LogRequestMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var reqBody []byte
 
@@ -42,11 +52,11 @@ func LogRequestMiddleware(db *gorm.DB) gin.HandlerFunc {
 		c.Writer = rw
 		c.Next()
 
-		go writeToDB(db, c, reqBody, rw)
+		go l.writeToDB(c, reqBody, rw)
 	}
 }
 
-func writeToDB(db *gorm.DB, c *gin.Context, reqBody []byte, rw *responseWriter) {
+func (l *LogMiddleware) writeToDB(c *gin.Context, reqBody []byte, rw *responseWriter) {
 	reqHeader, err := json.Marshal(c.Request.Header)
 	if err != nil {
 		util.SendError(c, http.StatusInternalServerError, err.Error(), "")
@@ -63,7 +73,7 @@ func writeToDB(db *gorm.DB, c *gin.Context, reqBody []byte, rw *responseWriter) 
 		ResponseBody:  rw.body.String(),
 	}
 
-	db.Create(&log)
+	l.db.Create(&log)
 }
 
 func getScheme(c *gin.Context) string {
