@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"io"
 	"net/http"
+	"sync"
 )
 
 type LogMiddleware struct {
@@ -19,6 +20,12 @@ func NewLogMiddleware(db *gorm.DB) *LogMiddleware {
 	return &LogMiddleware{
 		db: db,
 	}
+}
+
+var bufferPool = sync.Pool{
+	New: func() interface{} {
+		return new(bytes.Buffer)
+	},
 }
 
 type responseWriter struct {
@@ -45,21 +52,28 @@ func (l *LogMiddleware) LogRequestMiddleware() gin.HandlerFunc {
 			c.Request.Body = io.NopCloser(bytes.NewBuffer(reqBody))
 		}
 
+		buf := bufferPool.Get().(*bytes.Buffer)
+		buf.Reset()
+
 		rw := &responseWriter{
 			ResponseWriter: c.Writer,
-			body:           bytes.NewBuffer([]byte{}),
+			body:           buf,
 		}
 		c.Writer = rw
+
 		c.Next()
 
 		go l.writeToDB(c, reqBody, rw)
+
+		bufferPool.Put(buf)
 	}
 }
 
 func (l *LogMiddleware) writeToDB(c *gin.Context, reqBody []byte, rw *responseWriter) {
 	reqHeader, err := json.Marshal(c.Request.Header)
 	if err != nil {
-		util.SendError(c, http.StatusInternalServerError, err.Error(), "")
+		util.SaveErrToDB(err, l.db)
+		return
 	}
 
 	log := model.ApiLog{
@@ -68,12 +82,14 @@ func (l *LogMiddleware) writeToDB(c *gin.Context, reqBody []byte, rw *responseWr
 		Url:           getScheme(c) + "://" + c.Request.Host + c.Request.URL.String(),
 		RequestBody:   string(reqBody),
 		RequestHeader: string(reqHeader),
-		Ip:            c.Request.RemoteAddr,
+		Ip:            c.ClientIP(),
 		ResponseCode:  uint(c.Writer.Status()),
 		ResponseBody:  rw.body.String(),
 	}
 
-	l.db.Create(&log)
+	go func(log model.ApiLog) {
+		l.db.Create(&log)
+	}(log)
 }
 
 func getScheme(c *gin.Context) string {
