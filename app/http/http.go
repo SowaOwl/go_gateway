@@ -3,15 +3,18 @@ package http
 import (
 	"io"
 	"net/http"
+	"time"
 )
 
-type HTTPRepository interface {
+const defaultTimeout = 300 * time.Second
+
+type Repository interface {
 	Get(url string, bearerToken string) (*http.Response, []byte, error)
 	Post(url string, bearerToken string, contentType string, reqData io.Reader) (*http.Response, []byte, error)
 	WithBody(url string, bearerToken string, reqType string, reqData io.Reader) (*http.Response, []byte, error)
 }
 
-type HTTPRepositoryImpl struct {
+type RepositoryImpl struct {
 	client http.Client
 }
 
@@ -29,13 +32,15 @@ func (t *TransportWithToken) RoundTrip(req *http.Request) (*http.Response, error
 	return http.DefaultTransport.RoundTrip(req)
 }
 
-func NewHTTPRepository() HTTPRepository {
-	return &HTTPRepositoryImpl{
-		client: http.Client{},
+func NewHTTPRepository() Repository {
+	return &RepositoryImpl{
+		client: http.Client{
+			Timeout: defaultTimeout,
+		},
 	}
 }
 
-func (h *HTTPRepositoryImpl) Get(url string, bearerToken string) (*http.Response, []byte, error) {
+func (h *RepositoryImpl) Get(url string, bearerToken string) (*http.Response, []byte, error) {
 	h.client.Transport = &TransportWithToken{
 		Token: bearerToken,
 	}
@@ -58,7 +63,7 @@ func (h *HTTPRepositoryImpl) Get(url string, bearerToken string) (*http.Response
 	return resp, body, returnErr
 }
 
-func (h *HTTPRepositoryImpl) Post(url string, bearerToken string, contentType string, reqData io.Reader) (*http.Response, []byte, error) {
+func (h *RepositoryImpl) Post(url string, bearerToken string, contentType string, reqData io.Reader) (*http.Response, []byte, error) {
 	h.client.Transport = &TransportWithToken{
 		Token: bearerToken,
 	}
@@ -81,7 +86,7 @@ func (h *HTTPRepositoryImpl) Post(url string, bearerToken string, contentType st
 	return resp, body, returnErr
 }
 
-func (h *HTTPRepositoryImpl) WithBody(url string, bearerToken string, reqType string, reqData io.Reader) (*http.Response, []byte, error) {
+func (h *RepositoryImpl) WithBody(url string, bearerToken string, reqType string, reqData io.Reader) (*http.Response, []byte, error) {
 	h.client.Transport = &TransportWithToken{
 		Token: bearerToken,
 	}

@@ -20,10 +20,10 @@ type Service interface {
 }
 
 type ServiceImpl struct {
-	httpClient http.HTTPRepository
+	httpClient http.Repository
 }
 
-func NewService(repository http.HTTPRepository) Service {
+func NewService(repository http.Repository) Service {
 	return &ServiceImpl{
 		httpClient: repository,
 	}
