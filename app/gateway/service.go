@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"gateway/app/gateway/DTOs"
+	"gateway/app/http"
 	"github.com/gin-gonic/gin"
 	"io"
 	"mime/multipart"
@@ -19,10 +20,10 @@ type Service interface {
 }
 
 type ServiceImpl struct {
-	httpClient HTTPRepository
+	httpClient http.HTTPRepository
 }
 
-func NewService(repository HTTPRepository) Service {
+func NewService(repository http.HTTPRepository) Service {
 	return &ServiceImpl{
 		httpClient: repository,
 	}

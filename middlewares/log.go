@@ -38,7 +38,7 @@ func (rw *responseWriter) Write(data []byte) (int, error) {
 	return rw.ResponseWriter.Write(data)
 }
 
-func (l *LogMiddleware) LogRequestMiddleware() gin.HandlerFunc {
+func (l *LogMiddleware) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var reqBody []byte
 

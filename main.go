@@ -14,9 +14,9 @@ func main() {
 		util.SaveErrToFile(err)
 	}
 
-	deps := cmd.InitDependencies()
-	gateway := cmd.InitControllers()
-	authMiddleware, logMiddleware := cmd.InitMiddlewares(deps)
+	app := cmd.InitApp()
+
+	gateway := app.Controllers.Gateway
 
 	r := gin.Default()
 	r.LoadHTMLGlob("public/views/*")
@@ -26,17 +26,17 @@ func main() {
 	r.GET("/", func(c *gin.Context) { mainPage.RenderMainPage(c) })
 
 	//API routes
-	api.Use(authMiddleware.BearerTokenMiddleware(), logMiddleware.LogRequestMiddleware())
+	api.Use(app.Middlewares.Auth.Handle(), app.Middlewares.Log.Handle())
 	{
-		api.GET("/:service/*route", func(c *gin.Context) { gateway.Get(c) })
-		api.POST("/:service/*route", func(c *gin.Context) { gateway.Post(c) })
-		api.PUT("/:service/*route", func(c *gin.Context) { gateway.WithBody(c) })
-		api.PATCH("/:service/*route", func(c *gin.Context) { gateway.WithBody(c) })
-		api.DELETE("/:service/*route", func(c *gin.Context) { gateway.WithBody(c) })
+		api.GET("/:service/*route", gateway.Get)
+		api.POST("/:service/*route", gateway.Post)
+		api.PUT("/:service/*route", gateway.WithBody)
+		api.PATCH("/:service/*route", gateway.WithBody)
+		api.DELETE("/:service/*route", gateway.WithBody)
 	}
 
 	err = r.Run(":9000")
 	if err != nil {
-		util.SaveErrToDB(err, deps.DB)
+		util.SaveErrToDB(err, app.Dependencies.DB)
 	}
 }

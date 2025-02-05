@@ -27,7 +27,7 @@ func NewAuthMiddleware(db *gorm.DB, jwtService jwt.Service, redisService redis.S
 	}
 }
 
-func (a *AuthMiddleware) BearerTokenMiddleware() gin.HandlerFunc {
+func (a *AuthMiddleware) Handle() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		skipAuth, err := a.ifRouteAcceptToSkip(c.Request.URL.Path)
 		if err != nil {
